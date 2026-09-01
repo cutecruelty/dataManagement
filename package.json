@@ -1,0 +1,16 @@
+{
+  "name": "datamanagement",
+  "version": "1.0.0",
+  "description": "Data Management Project",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  }
+}
