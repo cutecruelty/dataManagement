@@ -1,3 +1,13 @@
+/*
+todo
+auth system
+finish commands
+
+
+*/
+
+
+
 class Book {
   id: number;
   title: string;
@@ -20,10 +30,29 @@ class Book {
   }
 }
 
+type Role = "admin" | "user";
+
+class User {
+  id: number;
+  username: string;
+  role: Role;
+
+  constructor(id: number, username: string, role: Role) {
+    this.id = id;
+    this.username = username;
+    this.role = role;
+  }
+}
+
+const books = new Map<number, Book>();
+const users = new Map<number, User>();
+
 function app() {
   const [userCommand, ...rawArgs] = process.argv.slice(2);
 
-  function parseArgs(rawArgs: string[]): Record<string, string> {
+  const database = function parseArgs(
+    rawArgs: string[],
+  ): Record<string, string> {
     const result: Record<string, string> = {};
     let i = 0;
     while (i < rawArgs.length) {
@@ -41,7 +70,7 @@ function app() {
       }
     }
     return result;
-  }
+  };
 
   const cmds = {
     create: {
@@ -52,6 +81,13 @@ function app() {
         { name: "price", clean: (text: string) => parseFloat(text) },
         { name: "stock", clean: (text: string) => parseInt(text) },
       ],
+      fn: () => {},
+    },
+
+    delete: {
+      roles: ["admin"],
+      args: [{ name: "title", clean: (text: string) => text }],
+      fn: () => {},
     },
   };
 }
