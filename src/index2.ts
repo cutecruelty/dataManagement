@@ -6,7 +6,7 @@ finish commands
 
 */
 
-
+import fs from "fs/promises";
 
 class Book {
   id: number;
@@ -47,12 +47,69 @@ class User {
 const books = new Map<number, Book>();
 const users = new Map<number, User>();
 
+const cmds = {
+  create: {
+    roles: ["admin"],
+    args: [
+      { name: "title", clean: (text: string) => text },
+      { name: "authors", clean: (text: string) => text },
+      { name: "price", clean: (text: string) => parseFloat(text) },
+      { name: "stock", clean: (text: string) => parseInt(text) },
+    ],
+    fn: (args: Record<string, string | number>) => {
+      const id = books.size + 1;
+      const book = new Book(
+        id,
+        args.title as string,
+        args.authors as string,
+        args.price as number,
+        args.stock as number,
+      );
+      books.set(id, book);
+      console.log(`created: ${book.title}`);
+    },
+  },
+
+  delete: {
+    roles: ["admin"],
+    args: [{ name: "id", clean: (text: string) => parseInt(text) }],
+    fn: (args: Record<string, number>) => {
+      const existed = books.delete(args.id);
+      console.log(
+        existed ? `deleted book ${args.id}` : `no book with id ${args.id}`,
+      );
+    },
+  },
+
+  read: {
+    roles: ["admin", "user"],
+    args: [{ name: "username", clean: (text: string) => text }],
+    fn: async (args: Record<string, string>) => {
+      try {
+        await fs.writeFile(
+          "books.json",
+          JSON.stringify(books, null, 2),
+          "utf8",
+        );
+
+        console.log("the list of available books is in src in file books.json");
+      } catch (err) {
+        console.log("error writing file", err);
+      }
+    },
+  },
+};
+
 function app() {
   const [userCommand, ...rawArgs] = process.argv.slice(2);
 
-  const database = function parseArgs(
-    rawArgs: string[],
-  ): Record<string, string> {
+  const cmd = cmds[userCommand as keyof typeof cmds];
+  if (!cmd) {
+    console.log(`Unknown command: ${userCommand}`);
+    return;
+  }
+
+  const parseArgs = function (rawArgs: string[]): Record<string, string> {
     const result: Record<string, string> = {};
     let i = 0;
     while (i < rawArgs.length) {
@@ -72,22 +129,5 @@ function app() {
     return result;
   };
 
-  const cmds = {
-    create: {
-      roles: ["admin"],
-      args: [
-        { name: "title", clean: (text: string) => text },
-        { name: "authors", clean: (text: string) => text },
-        { name: "price", clean: (text: string) => parseFloat(text) },
-        { name: "stock", clean: (text: string) => parseInt(text) },
-      ],
-      fn: () => {},
-    },
-
-    delete: {
-      roles: ["admin"],
-      args: [{ name: "title", clean: (text: string) => text }],
-      fn: () => {},
-    },
-  };
+  const paresed = parseArgs(rawArgs);
 }
